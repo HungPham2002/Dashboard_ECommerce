@@ -6,7 +6,7 @@ import seaborn as sns
 from PIL import Image
 # import time
 
-# Tạo dashboard
+# Tạo Dashboard
 
 # Using "with" notation
 with st.sidebar:
