@@ -4,6 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report, roc_curve, auc, roc_auc_score, f1_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn import svm
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+
 # import time
 
 # Tạo Dashboard
@@ -154,4 +165,298 @@ with st.container():
     
 # Model Performance
 with st.container():
-    st.title("Model Prediction's Performance")
+    st.title("Model Performances")
+
+# Load data
+data = pd.read_csv('mycsvfile.csv')
+
+# Split data
+X = data.drop(columns="customerstatus")
+y = data["customerstatus"].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=4, stratify=y)
+
+# Feature scaling
+col = ['totalcharges', 'avgmonthlylongdistancecharges', 'monthlycharge', 'totalrevenue', 'totallongdistancecharges',
+       'tenureinmonths', 'totallongdistancecharges', 'totalextradatacharges']
+scaler = StandardScaler()
+X_train[col] = StandardScaler().fit_transform(X_train[col])
+X_test[col] = StandardScaler().fit_transform(X_test[col])
+
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["KNN", "Logistic Regression", "SVM", "Decision Tree", "Random Forest", "Artificial Neural Network"])
+with tab1:
+    # 1. KNN MODEL
+    # Train model
+    algorithm = 'brute'
+    metric = 'euclidean'
+    n_neighbors = 20
+    good_modelknn = KNeighborsClassifier(algorithm=algorithm, metric=metric, n_neighbors=n_neighbors)
+    good_modelknn.fit(X_train, y_train)
+
+    # Test model
+    predknn = good_modelknn.predict(X_test)
+    accknn = accuracy_score(y_test, predknn)
+    precknn = precision_score(y_test, predknn)
+    recaknn = recall_score(y_test, predknn)
+
+    # Classification report
+    classification_report_data = classification_report(y_test, predknn, output_dict=True)
+    classification_report_dfKnn = pd.DataFrame(classification_report_data).transpose()
+
+    # Confusion matrix
+    confusion_matrix_df = pd.DataFrame(confusion_matrix(y_test, predknn))
+
+    # ROC curve
+    fpr, tpr, thresholds = roc_curve(y_test, good_modelknn.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='KNeighborsClassifier (AUC = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
+
+    # Display on Streamlit
+    st.write("## KNN Model Performance")
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.write("### Confusion Matrix")
+        st.dataframe(confusion_matrix_df)
+        st.write("### Evaluate Model")
+        st.write(f"Test accuracy = {accknn: .4f}")
+        st.write(f"Test precision = {precknn: .4f}")
+        st.write(f"Test recall = {recaknn: .4f}")
+        st.write("### Classification Report")
+        st.dataframe(classification_report_dfKnn)
+    with col2:
+        st.write("### ROC Curve")
+        st.pyplot(plt)
+
+with tab2:
+    #2. Logistic Regression
+    # Train model
+    C = 1000
+    max_iter = 1000
+    good_modelL = LogisticRegression(C = C, max_iter=max_iter) # create model 
+    good_modelL.fit(X_train,y_train) # train model
+
+    # Evaluate model
+    predL = good_modelL.predict(X_test)
+    accL = accuracy_score(y_test, predL)
+    precL = precision_score(y_test, predL)
+    recaL = recall_score(y_test, predL)
+    
+    fprL, tprL, thresholdsL = roc_curve(y_test, good_modelL.predict_proba(X_test)[:, 1])
+    roc_aucL = auc(fprL, tprL)
+    
+    # Classification Report
+
+    classification_report_data = classification_report(y_test, predL, output_dict=True)
+    classification_report_dfL = pd.DataFrame(classification_report_data).transpose()
+    
+    # Confusion Matrix
+    confusion_matrix_dfL = pd.DataFrame(confusion_matrix(y_test, predL))
+    
+    
+    # ROC
+    figL, axL = plt.subplots()
+    axL.plot(fprL, tprL, color='darkorange', lw=2, label='LogisticRegression (AUC = %0.2f)' % roc_aucL)
+    axL.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    axL.set_xlim([0.0, 1.0])
+    axL.set_ylim([0.0, 1.05])
+    axL.set_xlabel('False Positive Rate')
+    axL.set_ylabel('True Positive Rate')
+    axL.set_title('Receiver operating characteristic')
+    axL.legend(loc="lower right")
+    
+    # Display on Streamlit
+    st.write("## Logistic Regression Performance")
+    
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.write("### Confusion matrix")
+        st.write(pd.DataFrame(confusion_matrix_dfL))
+        st.write("### Evaluate Model")
+        st.write(f"Test accuracy = {accL:.4f}")
+        st.write(f"Test precision = {precL:.4f}")
+        st.write(f"Test recall = {recaL:.4f}")
+        st.write("### Classification Report")
+        st.dataframe(classification_report_dfL)
+    with col2:
+        st.write("### ROC curve")
+        st.pyplot(figL)
+       
+with tab3:
+    # SVM model
+    C = 1 
+    kernel = 'linear'
+    gamma =  0.1 
+    # Train model
+    good_modelsvm = svm.SVC(C=C, kernel=kernel, gamma=gamma, probability = True)
+    good_modelsvm.fit(X_train,y_train) 
+    # Evaluate model
+    predsvm = good_modelsvm.predict(X_test) 
+    accsvm = accuracy_score(y_test, predsvm) 
+    precsvm = precision_score(y_test, predsvm) 
+    recasvm = recall_score(y_test, predsvm) 
+    
+    fpr, tpr, thresholds = roc_curve(y_test, good_modelsvm.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    
+    #Classification Report
+    classification_report_data = classification_report(y_test, predsvm, output_dict=True)
+    classification_report_dfSVM = pd.DataFrame(classification_report_data).transpose()
+    
+    # Confusion Matrix
+    confusion_matrix_dfSVM = pd.DataFrame(confusion_matrix(y_test, predsvm))
+    
+    # ROC
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='SVM (AUC = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
+    
+    # Display on Streamlit
+    st.write("## SVM Model Performance")
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.write("### Confusion Matrix")
+        st.dataframe(confusion_matrix_dfSVM)
+        st.write("### Classification Report")
+        st.write("### Evaluate Model")
+        st.write(f"Test accuracy = {accsvm: .4f}")
+        st.write(f"Test precision = {precsvm: .4f}")
+        st.write(f"Test recall = {recasvm: .4f}")
+        st.dataframe(classification_report_dfSVM)
+    with col2:
+        st.write("### ROC Curve")
+        st.pyplot(plt)
+        
+with tab4:
+    # Decision Tree model
+    criterion = 'gini'
+    max_leaf_nodes = 19
+    # Train model
+    good_model_D = DecisionTreeClassifier(criterion=criterion,
+                                        max_leaf_nodes=max_leaf_nodes) 
+    good_model_D.fit(X_train, y_train)
+    # Evaluate model
+    pred_D = good_model_D.predict(X_test) 
+    acc_D = accuracy_score(y_test, pred_D) 
+    prec_D = precision_score(y_test, pred_D) 
+    reca_D = recall_score(y_test, pred_D)
+    
+    fpr, tpr, thresholds = roc_curve(y_test, good_model_D.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    
+    # Classification Report
+    classification_report_data = classification_report(y_test, pred_D, output_dict=True)
+    classification_report_dfD = pd.DataFrame(classification_report_data).transpose()
+    
+    # Confusion Matrix
+    confusion_matrix_dfD = pd.DataFrame(confusion_matrix(y_test, pred_D))
+    
+    # ROC
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='DecisionTreeClassifier (AUC = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
+    
+    
+    # Dislay on Streamlit
+    st.write("## Decision Tree Model Performance")
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.write("### Confusion Matrix")
+        st.dataframe(confusion_matrix_dfD)
+        st.write("### Evaluate Model")
+        st.write(f"Test accuracy = {acc_D: .4f}")
+        st.write(f"Test precision = {prec_D: .4f}")
+        st.write(f"Test recall = {reca_D: .4f}")
+        st.write("### Classification Report")
+        st.dataframe(classification_report_dfD)
+    with col2:
+        st.write("### ROC Curve")
+        st.pyplot(plt)
+
+with tab5:
+    # Random Forest model
+    max_features = 15
+    max_leaf_nodes = 16 
+    n_estimators = 50
+    # Train model
+    good_model = RandomForestClassifier(max_leaf_nodes = max_leaf_nodes,
+                                        max_features = max_features, 
+                                        n_estimators=n_estimators, ) 
+    good_model.fit(X_train, y_train) 
+    
+    pred = good_model.predict(X_test) # predicted output for test examples
+    # Evaluate model
+    acc = accuracy_score(y_test, pred) # accuracy on test examples
+    prec = precision_score(y_test, pred) # precision on test examples
+    reca = recall_score(y_test, pred) 
+    
+    fpr, tpr, thresholds = roc_curve(y_test, good_model.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    
+    # Classification Report
+    classification_report_data = classification_report(y_test, pred, output_dict=True)
+    classification_report_dfR = pd.DataFrame(classification_report_data).transpose()
+    
+    # Confusion Matrix
+    confusion_matrix_dfR = pd.DataFrame(confusion_matrix(y_test, pred))
+    
+    # ROC
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='RandomForest (AUC = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
+    
+    # Display on Streamlit
+    st.write("## Random Forest Model Performance")
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.write("### Confusion Matrix")
+        st.dataframe(confusion_matrix_dfR)
+        st.write("### Evaluate Model")
+        st.write(f"Test accuracy = {acc: .4f}")
+        st.write(f"Test precision = {prec: .4f}")
+        st.write(f"Test recall = {reca: .4f}")
+        st.write("### Classification Report")
+        st.dataframe(classification_report_dfR)
+    with col2:
+        st.write("### ROC Curve")
+        st.pyplot(plt)
+with tab6:
+    # display on streamlit
+    st.write("## Artificial Neural Network Model Performance")
+    col1, col2 = st.columns([1,2])
+    with col1:
+        st.write("### Evaluate Model")
+        st.write(f"ROC AUC = 0.916")
+        st.write(f"Valid accuracy = 0.846")
+        st.write(f"Test precision = 0.882")
+        st.write(f"F1-Score = 0.894")
+    with col2:   
+        
+        image_3 = Image.open('ANN.png')
+        st.image(image_3)
+
+
