@@ -14,13 +14,13 @@
 ## How we can create the dashboard
 - Streamlit: Streamlit is an open-source Python library that makes it easy to create and share beautiful, custom web apps for machine learning and data science.
 ![streamlit](https://images.datacamp.com/image/upload/v1640050215/image27_frqkzv.png)
-- Framework: Tensorflow, ScikitLearn
+- Framework: ScikitLearn
 - Python Libraries: Numpy, Pandas, Pillow, Matplotlib,...
 - Workflow:
 ![workflow](https://blog.jcharistech.com/wp-content/uploads/2021/10/Streamlit-Project-JCharisTech1.png)
 ## How to RUN this project
 - Step 1: Clone project and open by Visual Studio Code and open Terminal
-- Step 2: Install necessary libraries by command 'pip install [library]'
+- Step 2: Install necessary libraries (if your Local missing it, applogize for not writing requirement.txt) by command 'pip install [library_name]', eg: 'pip install numpy'.
 - Step 3: Write command 'streamlit run Dashboard.py'
 - Step 4: Done
 ### Contact: {20521371;20521233}@gm.uit.edu.vn
