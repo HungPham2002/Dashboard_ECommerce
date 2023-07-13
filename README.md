@@ -23,6 +23,6 @@
 - Step 2: Install necessary libraries (if your Local missing it, applogize for not writing requirement.txt) by command 'pip install [library_name]', eg: 'pip install numpy'.
 - Step 3: Write command 'streamlit run Dashboard.py'
 - Step 4: Done
-### Contact: {20521371;20521233}@gm.uit.edu.vn
-### Pham Huu Hung & Le Van Duy
+### Contact: {20521371;21522257}@gm.uit.edu.vn
+### Pham Huu Hung & Nguyen Phu Kiet
 ## THANK YOU!
